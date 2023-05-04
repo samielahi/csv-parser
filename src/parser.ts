@@ -1,7 +1,8 @@
 import type { ParsedRow } from "./types";
 
 export const csvParser = (() => {
-  function* rawParse(rawString: string): Generator<ParsedRow, void, undefined> {
+  function rawParse(rawString: string): ParsedRow[] {
+    const parsedRows: ParsedRow[] = [];
     let currentRow: string[] = [];
     let currentColumn = 0;
     let insideQuotedField = false;
@@ -23,7 +24,7 @@ export const csvParser = (() => {
         nextCharacter == "\n" &&
         !insideQuotedField
       ) {
-        yield currentRow;
+        parsedRows.push(currentRow);
         currentColumn = 0;
         currentRow = [];
         continue;
@@ -31,7 +32,7 @@ export const csvParser = (() => {
         (currentCharacter == "\n" || currentCharacter == "\r") &&
         !insideQuotedField
       ) {
-        yield currentRow;
+        parsedRows.push(currentRow);
         currentColumn = 0;
         currentRow = [];
       } else {
@@ -39,7 +40,7 @@ export const csvParser = (() => {
       }
     }
 
-    currentRow.length && (yield currentRow);
+    return parsedRows;
   }
 
   return { rawParse };
