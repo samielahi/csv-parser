@@ -1,13 +1,8 @@
-/*
-I want to be able to build a schema with zod and have the csv parser use it
-
-
-*/
+import type { ZodSchema } from "zod";
 
 export type ParsedRow = string[];
 
 // CSV Parsing Errors
-
 type DuplicateRequiredColumn = {
   code: "duplicate_column";
   message: string;
@@ -33,3 +28,16 @@ export type CSVParsingError =
   | MissingRequiredColumn
   | EmptyInput
   | NoInput;
+
+export type Column = string;
+
+export type Row<T> = T & {
+  errors?: Record<keyof T, string>;
+};
+
+export type ParserOptions = {
+  requiredColumns?: Column[] | null;
+  columnSchema: ZodSchema;
+  validate?: boolean;
+  ignoreExtraColumns?: boolean;
+};
