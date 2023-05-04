@@ -1,6 +1,26 @@
 import type { ParsedRow } from "./types";
 
 export const csvParser = (() => {
+  const isClosingQuotedValue = (
+    currentCharacter: string,
+    nextCharacter: string,
+    insideQuotedField: boolean
+  ) => currentCharacter === '"' && nextCharacter === '"' && insideQuotedField;
+
+  const isQuote = (currentCharacter: string) => currentCharacter === '"';
+
+  const isSeparatorComma = (currentCharacter: string, insideQuotedField: boolean) =>
+    currentCharacter === "," && !insideQuotedField;
+
+  const isWindowsNewline = (
+    currentCharacter: string,
+    nextCharacter: string,
+    insideQuotedField: boolean
+  ) => currentCharacter == "\r" && nextCharacter == "\n" && !insideQuotedField;
+
+  const isUnixNewLine = (currentCharacter: string, insideQuotedField: boolean) =>
+    (currentCharacter == "\n" || currentCharacter == "\r") && !insideQuotedField;
+
   function rawParse(rawString: string): ParsedRow[] {
     const parsedRows: ParsedRow[] = [];
     let currentRow: string[] = [];
@@ -12,26 +32,19 @@ export const csvParser = (() => {
       const nextCharacter = rawString[cursor + 1];
       currentRow[currentColumn] = currentRow[currentColumn] || "";
 
-      if (currentCharacter === '"' && nextCharacter === '"' && insideQuotedField) {
+      if (isClosingQuotedValue(currentCharacter, nextCharacter, insideQuotedField)) {
         currentRow[currentColumn] += currentCharacter;
         continue;
-      } else if (currentCharacter === '"') {
+      } else if (isQuote(currentCharacter)) {
         insideQuotedField = !insideQuotedField;
-      } else if (currentCharacter === "," && !insideQuotedField) {
+      } else if (isSeparatorComma(currentCharacter, insideQuotedField)) {
         currentColumn++;
-      } else if (
-        currentCharacter == "\r" &&
-        nextCharacter == "\n" &&
-        !insideQuotedField
-      ) {
+      } else if (isWindowsNewline(currentCharacter, nextCharacter, insideQuotedField)) {
         parsedRows.push(currentRow);
         currentColumn = 0;
         currentRow = [];
         continue;
-      } else if (
-        (currentCharacter == "\n" || currentCharacter == "\r") &&
-        !insideQuotedField
-      ) {
+      } else if (isUnixNewLine(currentCharacter, insideQuotedField)) {
         parsedRows.push(currentRow);
         currentColumn = 0;
         currentRow = [];
