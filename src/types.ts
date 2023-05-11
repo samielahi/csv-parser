@@ -38,5 +38,4 @@ export type Row<T> = T & {
 export type ParserOptions = {
   requiredColumns?: Column[] | null;
   columnSchema: ZodSchema;
-  validate?: boolean;
 };
