@@ -1,16 +1,8 @@
-import { createFrequencyMap, toRecord } from "./utils";
-import z from "zod";
+import { createFrequencyMap, toObject } from "./utils";
 import { Result } from "true-myth";
-import type { CSVParsingError, ParsedRow, ParserOptions } from "./types";
+import type { CSVParsingError, ParsedRow, ParserOptions, Row } from "./types";
 
 export const csvParser = (() => {
-  const defaultOptions: ParserOptions = {
-    validate: false,
-    requiredColumns: null,
-    columnSchema: null,
-    ignoreExtraColumns: true,
-  };
-
   const isClosingQuotedValue = (
     currentCharacter: string,
     nextCharacter: string,
@@ -132,11 +124,9 @@ export const csvParser = (() => {
   function validatedParse(
     csv: string,
     options: ParserOptions
-  ): Result<ParsedRow[], CSVParsingError> {
+  ): Result<Row<Record<string, string>>[], CSVParsingError> {
     const rawParsedCSV = rawParseGenerator(csv);
-    const { requiredColumns, columnSchema, ignoreExtraColumns } = options;
-
-    type Row = z.infer<typeof columnSchema>;
+    const { requiredColumns, columnSchema } = options;
 
     // First yield from rawParsedCSV Generator should be row of column headers
     const columns = validateColumns(
@@ -144,24 +134,32 @@ export const csvParser = (() => {
       requiredColumns || []
     );
 
-    // Report any issues with columns
+    // If any issues with columns then return errors
     if (columns.isErr) {
       return Result.err(columns.error);
     }
 
+    const validatedRows: Row<Record<string, string>>[] = [];
     const validatedColumns = columns.value;
 
     for (const parsedRow of rawParsedCSV) {
-      const validatedRow: Row = {};
+      const row = toObject(parsedRow, validatedColumns);
+      const validatedRow = columnSchema.safeParse(row);
+
+      if (validatedRow.success) {
+        validatedRows.push(validatedRow.data);
+      } else {
+        validatedRows.push(Object.assign(row, { errors: validatedRow.error }));
+      }
     }
 
-    return Result.ok([]);
+    return Result.ok(validatedRows);
   }
 
   function parse(
     csv: string,
-    options: ParserOptions
-  ): Result<ParsedRow[], CSVParsingError> {
+    options?: ParserOptions
+  ): Result<ParsedRow[] | Row<Record<string, string>>[], CSVParsingError> {
     // For undefined or null input, report no_input error
     if (!csv) {
       return Result.err({
@@ -178,14 +176,12 @@ export const csvParser = (() => {
       });
     }
 
-    const { validate } = Object.assign(defaultOptions, options);
-
-    if (validate) {
+    if (options) {
       return validatedParse(csv, options);
     }
 
     return Result.ok(rawParse(csv));
   }
 
-  return { validatedParse, rawParse };
+  return { parse };
 })();

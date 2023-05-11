@@ -11,13 +11,11 @@ function createFrequencyMap<T>(array: T[]) {
   return map;
 }
 
-function toRecord<T extends (string | number | symbol)[]>(
-  array: T
-): Record<keyof T, string | null> {
-  return array.reduce(
-    (acc, item) => ((acc[item as keyof T] = null), acc),
-    {} as Record<keyof T, string | null>
-  );
+function toObject<T = any>(cols: T[], keys: string[]) {
+  return keys.reduce((acc, curr, index) => {
+    acc[curr] = cols[index];
+    return acc;
+  }, {} as Record<string, T>);
 }
 
-export { createFrequencyMap, toRecord };
+export { createFrequencyMap, toObject };

@@ -1,4 +1,4 @@
-import type { ZodSchema } from "zod";
+import type { ZodError, ZodSchema } from "zod";
 
 export type ParsedRow = string[];
 
@@ -32,12 +32,11 @@ export type CSVParsingError =
 export type Column = string;
 
 export type Row<T> = T & {
-  errors?: Record<keyof T, string>;
+  errors?: ZodError;
 };
 
 export type ParserOptions = {
   requiredColumns?: Column[] | null;
   columnSchema: ZodSchema;
   validate?: boolean;
-  ignoreExtraColumns?: boolean;
 };

@@ -14,7 +14,7 @@ function fileToString(file: File | Blob): Result<Promise<string>, FileReadError>
         reject(
           Result.err({
             code: "file_read",
-            message: `File was not found or was unreadable.`,
+            message: `File was not found or was unreadable. Please make sure to pass in a UTF-8 encoded .csv file.`,
           })
         );
       reader.readAsText(file);

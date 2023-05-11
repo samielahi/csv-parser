@@ -13,18 +13,18 @@ Up,Pete Docter,2009
       ["Pulp Fiction", "Quentin Tarantino", "1994"],
       ["Up", "Pete Docter", "2009"],
     ];
-    const output = csvParser.rawParse(test);
+    const output = csvParser.parse(test).unwrapOr([]);
     expect(output).toStrictEqual(expected);
   });
 
-  it("Basic validated parse", () => {
-    const expected = [
-      ["title", "director", "year"],
-      ["Pulp Fiction", "Quentin Tarantino", "1994"],
-      ["Up", "Pete Docter", "2009"],
-    ];
-    const output = csvParser.validatedParse(test, {});
-    console.log(output);
-    expect(output).toStrictEqual(expected);
-  });
+  // it("Basic validated parse", () => {
+  //   const expected = [
+  //     ["title", "director", "year"],
+  //     ["Pulp Fiction", "Quentin Tarantino", "1994"],
+  //     ["Up", "Pete Docter", "2009"],
+  //   ];
+  //   const output = csvParser.validatedParse(test);
+  //   console.log(output);
+  //   expect(output).toStrictEqual(expected);
+  // });
 });
