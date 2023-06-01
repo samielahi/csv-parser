@@ -1,4 +1,4 @@
-import type { ZodError, ZodSchema } from "zod";
+import type { ZodError, ZodObject, ZodRawShape } from "zod";
 
 export type ParsedRow = string[];
 
@@ -36,6 +36,6 @@ export type Row<T> = T & {
 };
 
 export type ParserOptions = {
-  requiredColumns?: Column[] | null;
-  columnSchema: ZodSchema;
+  // requiredColumns?: Column[] | null;
+  columnSchema: ZodObject<ZodRawShape>;
 };

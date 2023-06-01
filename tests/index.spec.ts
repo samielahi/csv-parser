@@ -32,7 +32,6 @@ Up,Pete Docter,2009
 
     const output = csvParser
       .parse(test, {
-        requiredColumns: ["title", "director", "year"],
         columnSchema: schema,
       })
       .unwrapOr([]);

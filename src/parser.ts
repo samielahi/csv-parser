@@ -11,8 +11,10 @@ export const csvParser = (() => {
 
   const isQuote = (currentCharacter: string) => currentCharacter === '"';
 
-  const isSeparatorComma = (currentCharacter: string, insideQuotedField: boolean) =>
-    currentCharacter === "," && !insideQuotedField;
+  const isSeparatorComma = (
+    currentCharacter: string,
+    insideQuotedField: boolean
+  ) => currentCharacter === "," && !insideQuotedField;
 
   const isWindowsNewline = (
     currentCharacter: string,
@@ -20,8 +22,12 @@ export const csvParser = (() => {
     insideQuotedField: boolean
   ) => currentCharacter == "\r" && nextCharacter == "\n" && !insideQuotedField;
 
-  const isUnixNewLine = (currentCharacter: string, insideQuotedField: boolean) =>
-    (currentCharacter == "\n" || currentCharacter == "\r") && !insideQuotedField;
+  const isUnixNewLine = (
+    currentCharacter: string,
+    insideQuotedField: boolean
+  ) =>
+    (currentCharacter == "\n" || currentCharacter == "\r") &&
+    !insideQuotedField;
 
   function rawParse(rawString: string): ParsedRow[] {
     const parsedRows: ParsedRow[] = [];
@@ -34,14 +40,18 @@ export const csvParser = (() => {
       const nextCharacter = rawString[cursor + 1];
       currentRow[currentColumn] = currentRow[currentColumn] || "";
 
-      if (isClosingQuotedValue(currentCharacter, nextCharacter, insideQuotedField)) {
+      if (
+        isClosingQuotedValue(currentCharacter, nextCharacter, insideQuotedField)
+      ) {
         currentRow[currentColumn] += currentCharacter;
         continue;
       } else if (isQuote(currentCharacter)) {
         insideQuotedField = !insideQuotedField;
       } else if (isSeparatorComma(currentCharacter, insideQuotedField)) {
         currentColumn++;
-      } else if (isWindowsNewline(currentCharacter, nextCharacter, insideQuotedField)) {
+      } else if (
+        isWindowsNewline(currentCharacter, nextCharacter, insideQuotedField)
+      ) {
         parsedRows.push(currentRow);
         currentColumn = 0;
         currentRow = [];
@@ -58,7 +68,9 @@ export const csvParser = (() => {
     return parsedRows;
   }
 
-  function* rawParseGenerator(rawString: string): Generator<ParsedRow, void, undefined> {
+  function* rawParseGenerator(
+    rawString: string
+  ): Generator<ParsedRow, void, undefined> {
     let currentRow: ParsedRow = [];
     let currentColumn = 0;
     let insideQuotedField = false;
@@ -68,14 +80,18 @@ export const csvParser = (() => {
       const nextCharacter = rawString[cursor + 1];
       currentRow[currentColumn] = currentRow[currentColumn] || "";
 
-      if (isClosingQuotedValue(currentCharacter, nextCharacter, insideQuotedField)) {
+      if (
+        isClosingQuotedValue(currentCharacter, nextCharacter, insideQuotedField)
+      ) {
         currentRow[currentColumn] += currentCharacter;
         continue;
       } else if (isQuote(currentCharacter)) {
         insideQuotedField = !insideQuotedField;
       } else if (isSeparatorComma(currentCharacter, insideQuotedField)) {
         currentColumn++;
-      } else if (isWindowsNewline(currentCharacter, nextCharacter, insideQuotedField)) {
+      } else if (
+        isWindowsNewline(currentCharacter, nextCharacter, insideQuotedField)
+      ) {
         yield currentRow;
         currentColumn = 0;
         currentRow = [];
@@ -93,14 +109,14 @@ export const csvParser = (() => {
   }
 
   function validateColumns(
-    values: ParsedRow,
+    columns: ParsedRow,
     requiredColumns: string[]
   ): Result<string[], CSVParsingError> {
-    const cleanedValues = values.map((value) => value.trim().toLowerCase());
-    const valueFrequencyMap = createFrequencyMap<string>(cleanedValues);
+    const cleanedColumns = columns.map((value) => value.trim().toLowerCase());
+    const columnFrequencyMap = createFrequencyMap<string>(cleanedColumns);
 
     for (const column of requiredColumns) {
-      const count = valueFrequencyMap.get(column);
+      const count = columnFrequencyMap.get(column);
       // If the count doesn't exist then report that the column is missing
       if (!count) {
         return Result.err({
@@ -118,7 +134,7 @@ export const csvParser = (() => {
       }
     }
 
-    return Result.ok(cleanedValues);
+    return Result.ok(cleanedColumns);
   }
 
   function validatedParse(
@@ -126,7 +142,8 @@ export const csvParser = (() => {
     options: ParserOptions
   ): Result<Row<Record<string, string>>[], CSVParsingError> {
     const rawParsedCSV = rawParseGenerator(csv);
-    const { requiredColumns, columnSchema } = options;
+    const { columnSchema } = options;
+    const requiredColumns = Object.keys(columnSchema.shape);
 
     // First yield from rawParsedCSV Generator should be row of column headers
     const columns = validateColumns(

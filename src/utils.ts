@@ -1,12 +1,8 @@
 function createFrequencyMap<T>(array: T[]) {
   const map = new Map<T, number>();
   for (const value of array) {
-    const count = map.get(value);
-    if (count) {
-      map.set(value, count + 1);
-    } else {
-      map.set(value, 1);
-    }
+    const currentFrequency = map.get(value);
+    map.set(value, currentFrequency! + 1 || 1);
   }
   return map;
 }
